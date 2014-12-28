@@ -48,8 +48,6 @@ var feature_collection = turf.featurecollection([point, point2]);
 
 var map = L.mapbox.map('map', 'faraday2.206936a8')
     .setView([39.66914219401813, -121.44561767578125], 9);
-    //.featureLayer.setGeoJSON(feature_collection)
-    //.featureLayer.setGeoJSON(point2);
 
 var buffer = turf.buffer(polygon, -8, "miles");
 var buffer2 = turf.buffer(polygon, 5, "miles");
