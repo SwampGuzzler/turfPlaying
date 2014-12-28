@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>turf-buffer</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://rawgit.com/Turfjs/turf/master/turf.min.js'></script>
+<script src='https://api.tiles.mapbox.com/mapbox.js/v2.0.1/mapbox.js'></script>
+<script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v2.0.1/mapbox.css' rel='stylesheet' />
+<style>
+  body { margin:0; padding:0; }
+  #map { position:absolute; top:0; bottom:0; width:100%; }
+</style>
+</head>
+<body>
+<div id='map'></div>
+
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiZmFyYWRheTIiLCJhIjoiTUVHbDl5OCJ9.buFaqIdaIM3iXr1BOYKpsQ';
+var poly_fc;
+var within;
+
+var polygon = turf.polygon([
+    [
+        [-121.5847,40.1002],[-121.5080,40.1002],[-121.4368,40.1495],[-121.4040,40.1495],[-121.3656,40.0838],[-121.4204,40.0181],[-121.4094,39.8702],[-121.0753,39.5963],[-121.1575,39.5197],[-121.3054,39.5197],[-121.3328,39.4265],[-121.4040,39.3389],[-121.6121,39.3170],[-121.6230,39.2951],[-121.9078,39.3061],[-121.8914,39.3827],[-121.8585,39.5361],[-121.9955,39.5361],[-121.9900,39.6401],[-121.9681,39.6511],[-121.9955,39.6675],[-121.9407,39.6949],[-121.9462,39.7333],[-122.0448,39.7990],[-122.0667,39.8428],[-122.0448,39.8811],[-121.7764,39.8866],[-121.7052,39.9852],[-121.6449,39.9852]
+    ]
+], {
+    "fill": "#e2e3e3",
+    "stroke": "#333",
+    "stroke-width": 5,
+    "description": "Original Polygon"
+});
+
+var point = turf.point(-121.5,39.64, {
+    "title": "My Point 2",
+    "marker-color": "#6BC65F",
+    "marker-size": "large",
+    "marker-symbol": "basketball"
+});
+var point2 = turf.point(-122.2,39.8, {
+    "title": "My Point",
+    "marker-color": "#6BC65F",
+    "marker-size": "large",
+    "marker-symbol": "basketball"
+});
+var feature_collection = turf.featurecollection([point, point2]);
+
+var map = L.mapbox.map('map', 'faraday2.206936a8')
+    .setView([39.66914219401813, -121.44561767578125], 9);
+    //.featureLayer.setGeoJSON(feature_collection)
+    //.featureLayer.setGeoJSON(point2);
+
+var buffer = turf.buffer(polygon, -8, "miles");
+var buffer2 = turf.buffer(polygon, 5, "miles");
+
+buffer.features[0].properties = {
+    "fill": "#0000ff",
+    "stroke": "#0000ff",
+    "stroke-width": 5,
+    "description": "8 miles inward"
+}
+
+buffer2.features[0].properties = {
+    "fill": "yellow",
+    "stroke": "yellow",
+    "stroke-width": 3,
+    "description": "5 miles outwards"
+}
+L.mapbox.featureLayer().setGeoJSON(buffer2).addTo(map);
+within_poly = L.mapbox.featureLayer().setGeoJSON(polygon).addTo(map);
+//L.mapbox.featureLayer().setGeoJSON(polygon).addTo(map);
+L.mapbox.featureLayer().setGeoJSON(buffer).addTo(map);
+within_fc = L.mapbox.featureLayer().addTo(map);
+
+within_poly.eachLayer(function(layer) {
+    layer.editing.enable();
+    updateWithinLayer(layer);
+    layer.on('edit', function(e) {
+        updateWithinLayer(e.target);
+    });
+});
+
+function updateWithinLayer(layer) {
+    within_poly = turf.featurecollection([layer.toGeoJSON()]);
+    within = turf.within(feature_collection, within_poly);
+    within_fc.setGeoJSON(within);
+}
+</script>
+</body>
+</html>
